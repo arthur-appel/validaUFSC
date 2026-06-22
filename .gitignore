@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Dados (PDFs raspados e artefatos)
+data/raw/
+data/processed/
+*.log
+
+# Ambiente
+.env
+.env.local
+
+# Docker volumes locais (se mapeados)
+.pgdata/
+.ollama/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
