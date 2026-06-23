@@ -36,7 +36,7 @@ def _expandir(page, texto: str, capturar: bool = False) -> str | None:
 
     Retorna None se o nó não existe; senão o corpo do POST AJAX (vazio se não capturado)."""
     handle = page.evaluate_handle(
-        """(t)=>{const td=[...document.querySelectorAll('td')].find(x=>x.textContent.trim()===t);
+        """(t)=>{const td=[...document.querySelectorAll('td')].find(x=>x.textContent.trim().replace(/\\s+/g,' ')===t);
             if(!td)return null; let r=td; while(r&&r.tagName!=='TR')r=r.parentElement;
             return r?r.querySelector('img.rich-tree-node-handleicon-collapsed'):null;}""",
         texto,
