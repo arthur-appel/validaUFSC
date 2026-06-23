@@ -74,6 +74,12 @@ export default function App() {
     }
   }
 
+  const novaComparacao = useCallback(() => {
+    setOrigemId("");
+    setDestinoId("");
+    setResultado(null);
+  }, []);
+
   async function analisar() {
     if (origemId === "" || destinoId === "") return;
     setCarregando(true);
@@ -112,19 +118,22 @@ export default function App() {
     <>
       <div className="flex min-h-screen" aria-hidden={mostrarForm || undefined}>
         <Sidebar
-        cursos={cursos}
-        origemId={origemId}
-        destinoId={destinoId}
-        setOrigemId={setOrigemId}
-        setDestinoId={setDestinoId}
-        historico={historico}
-        onUploadHistorico={onUploadHistorico}
-        analisar={analisar}
-        podeAnalisar={podeAnalisar}
-        carregando={carregando}
-        theme={theme}
-        alternarTema={alternar}
-      />
+          cursos={cursos}
+          origemId={origemId}
+          destinoId={destinoId}
+          setOrigemId={setOrigemId}
+          setDestinoId={setDestinoId}
+          historico={historico}
+          onUploadHistorico={onUploadHistorico}
+          onLimparHistorico={() => setHistorico(null)}
+          analisar={analisar}
+          podeAnalisar={podeAnalisar}
+          carregando={carregando}
+          theme={theme}
+          alternarTema={alternar}
+          temResultado={!!resultado}
+          novaComparacao={novaComparacao}
+        />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">
         <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -138,14 +147,24 @@ export default function App() {
                 : "Selecione as grades de origem e destino e clique em Analisar Aproveitamento."}
             </p>
           </div>
-          {temCandidatas && (
-            <button
-              onClick={() => setMostrarForm(true)}
-              className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-brand-100 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200 dark:hover:bg-brand-500/20"
-            >
-              📝 Gerar formulário de aproveitamento
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {resultado && (
+              <button
+                onClick={novaComparacao}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              >
+                🔄 Nova Comparação
+              </button>
+            )}
+            {temCandidatas && (
+              <button
+                onClick={() => setMostrarForm(true)}
+                className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-brand-100 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200 dark:hover:bg-brand-500/20"
+              >
+                📝 Gerar formulário de aproveitamento
+              </button>
+            )}
+          </div>
         </header>
 
         {erro && (
@@ -195,11 +214,14 @@ function Sidebar(props: {
   setDestinoId: (v: number | "") => void;
   historico: HistoricoResp | null;
   onUploadHistorico: (f: File) => void;
+  onLimparHistorico: () => void;
   analisar: () => void;
   podeAnalisar: boolean;
   carregando: boolean;
   theme: "light" | "dark";
   alternarTema: () => void;
+  temResultado: boolean;
+  novaComparacao: () => void;
 }) {
   const opcoes = (excluir: number | "") =>
     props.cursos
@@ -214,7 +236,7 @@ function Sidebar(props: {
     id === "" ? undefined : props.cursos.find((c) => c.curriculo_id === id);
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col gap-6 border-r border-slate-200 bg-white px-6 py-7 dark:border-slate-800 dark:bg-slate-900">
+    <aside className="sticky top-0 flex h-screen w-80 shrink-0 flex-col gap-6 overflow-y-auto border-r border-slate-200 bg-white px-6 py-7 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-brand-500 text-lg font-bold text-white">
@@ -244,17 +266,43 @@ function Sidebar(props: {
         <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
           Grade de origem
         </label>
-        <Select value={props.origemId} onChange={props.setOrigemId} placeholder="Curso de origem…">
-          {opcoes(props.destinoId)}
-        </Select>
+        <div className="flex items-stretch gap-1.5">
+          <div className="flex-1 min-w-0">
+            <Select value={props.origemId} onChange={props.setOrigemId} placeholder="Curso de origem…">
+              {opcoes(props.destinoId)}
+            </Select>
+          </div>
+          {props.origemId !== "" && (
+            <button
+              onClick={() => props.setOrigemId("")}
+              className="flex w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-colors"
+              title="Limpar origem"
+            >
+              ✕
+            </button>
+          )}
+        </div>
         <PdfLink curso={selecionado(props.origemId)} />
 
         <label className="mb-1 mt-4 block text-sm font-medium text-slate-600 dark:text-slate-300">
           Grade de destino
         </label>
-        <Select value={props.destinoId} onChange={props.setDestinoId} placeholder="Curso de destino…">
-          {opcoes(props.origemId)}
-        </Select>
+        <div className="flex items-stretch gap-1.5">
+          <div className="flex-1 min-w-0">
+            <Select value={props.destinoId} onChange={props.setDestinoId} placeholder="Curso de destino…">
+              {opcoes(props.origemId)}
+            </Select>
+          </div>
+          {props.destinoId !== "" && (
+            <button
+              onClick={() => props.setDestinoId("")}
+              className="flex w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-colors"
+              title="Limpar destino"
+            >
+              ✕
+            </button>
+          )}
+        </div>
         <PdfLink curso={selecionado(props.destinoId)} />
       </div>
 
@@ -262,17 +310,35 @@ function Sidebar(props: {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
           Histórico do aluno (opcional)
         </p>
-        <label className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500 hover:border-brand-400 hover:text-brand-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-brand-400 dark:hover:text-brand-300">
-          <input
-            type="file"
-            accept="application/pdf"
-            className="hidden"
-            onChange={(e) => e.target.files?.[0] && props.onUploadHistorico(e.target.files[0])}
-          />
-          {props.historico
-            ? `✓ ${props.historico.aluno ?? "Histórico"} — ${props.historico.aprovadas.length} aprovadas`
-            : "Enviar PDF do histórico"}
-        </label>
+        {props.historico ? (
+          <div className="flex items-stretch gap-1.5">
+            <div className="flex-1 min-w-0 flex items-center justify-between rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300">
+              <span className="truncate" title={props.historico.aluno ?? "Histórico"}>
+                ✓ {props.historico.aluno ?? "Histórico"}
+              </span>
+              <span className="shrink-0 ml-1 text-xs text-slate-400">
+                ({props.historico.aprovadas.length} apr.)
+              </span>
+            </div>
+            <button
+              onClick={props.onLimparHistorico}
+              className="flex w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-colors"
+              title="Remover histórico"
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <label className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500 hover:border-brand-400 hover:text-brand-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-brand-400 dark:hover:text-brand-300">
+            <input
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && props.onUploadHistorico(e.target.files[0])}
+            />
+            Enviar PDF do histórico
+          </label>
+        )}
         {props.historico && (
           <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
             Análise restrita às disciplinas já cursadas.
@@ -289,6 +355,14 @@ function Sidebar(props: {
         >
           {props.carregando ? "Analisando…" : "Analisar Aproveitamento"}
         </button>
+        {props.temResultado && (
+          <button
+            onClick={props.novaComparacao}
+            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+          >
+            Nova Comparação
+          </button>
+        )}
       </div>
     </aside>
   );
