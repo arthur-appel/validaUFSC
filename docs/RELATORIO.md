@@ -40,7 +40,7 @@ manualmente dois currículos em PDF, disciplina por disciplina, para descobrir o
 validado pelo colegiado de destino — um processo lento e propenso a erro. Este trabalho apresenta o
 **Valida UFSC**, uma aplicação web que automatiza essa triagem. O sistema integra um **pipeline de
 engenharia de dados** (raspagem do sistema acadêmico CAGR com Playwright, extração de PDFs com
-pdfplumber e carga em PostgreSQL com a extensão pgvector), um **motor de equivalência híbrido em
+pdfplumber e carga em PostgreSQL com a extensão pgvector (para comparar similaridade de vetores)), um **motor de equivalência híbrido em
 camadas** (casamento por código, equivalência oficial declarada, similaridade semântica de ementas
 via *embeddings* e somatório N:1 de carga horária) e uma **interface web** em React. O critério de
 validação segue as Resoluções 17/CUn/97 e 115/2022/CGRAD da UFSC (≥ 75% de conteúdo e ≥ 75% de carga
@@ -135,7 +135,7 @@ A Figura 1 resume o fluxo do sistema. O pipeline de dados (offline) alimenta o b
 CAGR (JSF) --Playwright--> Scraper --pdfplumber--> Parser --> Loader --> PostgreSQL + pgvector
                                                                 |               ^
                                                           Embeddings (Ollama) --+
- Frontend (React) <--REST--> Backend (FastAPI) --motor em camadas--> +----------+
+ Frontend (React) <--REST (comunicação de dados)--> Backend (FastAPI) --motor em camadas--> +----------+
 ```
 
 Todos os serviços são orquestrados por **Docker Compose**: banco (`db`), modelos de IA (`ollama`),
@@ -162,11 +162,11 @@ ordem visual**. Uma extração ingênua produz texto embaralhado. A solução fo
 coordenadas** com pdfplumber: as palavras são reordenadas pela posição (x, y) na página,
 reconstruindo a tabela coluna a coluna (fronteiras de `x0` para código, nome, tipo, H/A, equivalentes,
 pré-requisito); o **tamanho da fonte** distingue a linha de dados da linha de ementa. A correção é
-validada por ***golden tests*** sobre PDFs de exemplo (contagem e códigos esperados).
+validada por ***testes de comparação com gabaritos*** sobre PDFs de exemplo (contagem e códigos esperados).
 
 ## 4.3. Carga (loader.py)
 
-O *loader* normaliza e faz **upsert idempotente**: a `disciplina` é canônica por código (deduplicada
+O *loader* normaliza e faz **inserção ou atualização inteligente (evitando duplicados)**: a `disciplina` é canônica por código (deduplicada
 entre currículos), e a junção `curriculo_disciplina` guarda o que varia por currículo (tipo e fase).
 A coluna "Equivalentes" do PDF vira a tabela `equivalencia_oficial`. Uma política determinística
 ("vence o dado mais completo") garante resultado estável independentemente da ordem dos arquivos.
@@ -209,9 +209,9 @@ em apenas uma). Na faixa determinística (código/oficial), mantém-se a relaç�
 
 ## 5.3. Testabilidade
 
-A função de similaridade é **injetada como dependência** no motor, que assim é **100% testável
+A função de similaridade é **configurado de forma independente (testável offline)** no motor, que assim é **100% testável
 offline** (sem banco nem rede). São **18 testes** unitários cobrindo as camadas, a regra de CH, o
-somatório N:1, o reuso, a calibração e regressões de revisão adversarial.
+somatório N:1, o reuso, a calibração e regressões de simulações de casos reais.
 
 # 6. Backend, API e banco de dados
 
