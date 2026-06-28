@@ -28,8 +28,8 @@ from valida_ufsc.etl.parser import parse_curriculo_pdf
 _HOST = f"{urlsplit(settings.cagr_tree_url).scheme}://{urlsplit(settings.cagr_tree_url).netloc}"
 _REPORT = _HOST + "/relatorios/curriculoCurso?curso={curso}&curriculo={vig}"
 
-# Vigências candidatas, da mais nova para a mais antiga (2026/2 .. 2008/1).
-VIGS = [f"{y}{s}" for y in range(2026, 2007, -1) for s in (2, 1)]
+# Vigências candidatas, da mais nova para a mais antiga (2027/2 .. 1991/1).
+VIGS = [f"{y}{s}" for y in range(2027, 1990, -1) for s in (2, 1)]
 MIN_DISC = 8
 CURSOS_PADRAO = ["238", "201", "202", "216", "324", "455"]
 

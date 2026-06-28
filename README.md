@@ -63,7 +63,7 @@ tenta validar em **camadas de confiança decrescente**, parando na primeira que 
 |---|---|---|---|
 | 1 | **Código exato** (mesmo código UFSC) | `aproveita` | ✅ direto |
 | 2 | **Equivalência oficial** (coluna "Equivalentes" do PDF) | `aproveita` | ✅ direto |
-| 3 | **Semântico** (cosseno entre ementas ≥ **0,70**) | `boa_chance` | 🔎 boas chances |
+| 3 | **Semântico** (cosseno entre ementas ≥ **0,75**) | `boa_chance` | 🔎 boas chances |
 | 4 | **Somatório N:1** (combina 2+ origens p/ cobrir a CH) | `boa_chance` | 🔎 boas chances |
 | — | nada acima do corte | `nao_aproveita` | sem candidata |
 
@@ -75,7 +75,7 @@ Regras transversais:
 - **Recall + reuso:** na faixa semântica, a mesma disciplina de origem **pode ser sugerida para mais
   de um destino** (maximiza o leque; o colegiado valida cada origem em apenas um). Na faixa
   determinística (código/oficial), a relação é **1:1** (consumo).
-- **Calibração:** o corte de 0,70 foi calibrado com as **3.794 equivalências oficiais** como gabarito
+- **Calibração:** o corte de 0,75 foi calibrado com as **3.794 equivalências oficiais** como gabarito
   (equivalências reais ~0,84 de mediana; ruído < 0,67). Ver [`docs/RELATORIO.md`](docs/RELATORIO.md) §9.2.
 
 > **E o juiz LLM?** Um juiz LLM local chegou a ser avaliado para decidir os casos semânticos, mas
@@ -118,6 +118,7 @@ docker compose up -d --build db        # sobe só o banco (vazio)
 python scripts/restore_seed.py          # restaura ~109 cursos + disciplinas + embeddings
 docker compose up -d                    # sobe backend + frontend + ollama
 docker compose --profile setup run --rm ollama-pull   # baixa o modelo de embeddings (bge-m3)
+docker compose exec backend python scripts/fix_empty_curriculos.py # corrige currículos vazios (Sistemas de Informação, Eng. Civil, etc.)
 ```
 
 ### Opção B — da FONTE: raspa o CAGR do zero (~40 min, precisa de internet)
@@ -127,7 +128,11 @@ cp .env.example .env
 docker compose up -d --build
 docker compose --profile setup run --rm ollama-pull    # bge-m3 (embeddings)
 docker compose --profile etl run --rm etl              # raspa -> parseia -> carrega -> embeddings
+docker compose exec backend python scripts/fix_empty_curriculos.py # corrige currículos vazios (Sistemas de Informação, Eng. Civil, etc.)
 ```
+
+> [!IMPORTANT]
+> **Correção de currículos vazios:** Alguns cursos possuem como vigência mais nova no CAGR um placeholder vazio (ex: 2027/1). O comando `docker compose exec backend python scripts/fix_empty_curriculos.py` busca retroativamente e carrega a vigência mais recente que contenha disciplinas, garantindo que cursos como *Sistemas de Informação*, *Engenharia Civil*, *Engenharia Elétrica* e *Engenharia Química* apareçam corretamente para comparação.
 
 Acessos:
 
@@ -209,7 +214,7 @@ OLLAMA_BASE_URL=http://ollama:11434
 EMBEDDING_MODEL=bge-m3            # embeddings (1024-dim)
 LIMIAR_CONTEUDO=0.75            # conteúdo "forte" (reforço por somatório N:1)
 LIMIAR_CARGA_HORARIA=0.75       # regra dos 75% de CH
-LIMIAR_BOA_CHANCE=0.70          # corte da faixa "boas chances" (calibrado)
+LIMIAR_BOA_CHANCE=0.75          # corte da faixa "boas chances" (anteriormente 0.70)
 CAGR_TREE_URL=https://cagr.sistemas.ufsc.br/arvore.xhtml?treeid=30
 ```
 
@@ -237,8 +242,8 @@ nem Ollama.
 ## Notas de qualidade de dados
 
 - **Currículos vazios:** o scraper pega a vigência mais nova, que para alguns cursos é um
-  **placeholder de 2027 ainda em branco** no CAGR (0 disciplinas). Detectamos 6 casos; corrigimos 5
-  com `fix_empty_curriculos.py` (o 6º — Eng. Química — não tem currículo parseável na fonte). A
+  **placeholder de 2027 ainda em branco** no CAGR (0 disciplinas). Detectamos 6 casos; corrigimos todos
+  os 6 rodando `fix_empty_curriculos.py` (o script busca retroativamente por vigências válidas com conteúdo). A
   interface **oculta currículos vazios** dos seletores.
 - **`fase` nula:** legítima em alguns currículos-matriz (humanas) cujo PDF não agrupa por fase.
 

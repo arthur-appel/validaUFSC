@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     limiar_carga_horaria: float = 0.75  # regra dos 75% de CH
     # Corte da faixa "boa chance" (similaridade de ementa). CALIBRADO: equivalências oficiais
     # da UFSC ficam acima de ~0,70; 99% dos pares aleatórios ficam abaixo de 0,67 (ruído).
-    limiar_boa_chance: float = 0.70
+    limiar_boa_chance: float = 0.75
 
     # Scraper
     cagr_tree_url: str = "https://cagr.sistemas.ufsc.br/arvore.xhtml?treeid=30"

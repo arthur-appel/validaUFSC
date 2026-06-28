@@ -186,7 +186,7 @@ resolve:
 1. **Código exato** — mesmo código UFSC ⇒ disciplina idêntica → *aproveitamento direto*.
 2. **Equivalência oficial** — declarada na coluna "Equivalentes" do PDF → *aproveitamento direto*.
 3. **Semântico** — similaridade de cosseno entre ementas (via pgvector); acima do **corte
-   calibrado (0,70)** → *boa chance*.
+   calibrado (0,75)** → *boa chance*.
 4. **Somatório N:1** — quando uma origem isolada não cobre a carga horária, combina-se 2+ origens
    semelhantes até atingir 75%.
 
@@ -268,7 +268,7 @@ juiz.
 das equivalências verdadeiras (o `bge-m3` **comprime** a similaridade numa faixa estreita). Usamos as
 **3.794 equivalências oficiais da UFSC** como gabarito: medimos que pares de fato equivalentes têm
 similaridade com **mediana 0,84** (p25 = 0,75), enquanto pares aleatórios (ruído) ficam abaixo de
-**0,67** (percentil 99). O corte foi então fixado de forma fundamentada em **0,70**.
+**0,67** (percentil 99). O corte foi fixado de forma fundamentada em **0,75** (ajustado a partir de 0,70 para mitigar falsos positivos/delírios observados na faixa de 0,72).
 
 **9.3. O juiz LLM era inviável na CPU.** Medimos que o LLM local (`qwen2.5:3b`) levava **~8–30 s por
 chamada**, com ganho de paralelismo de apenas ~1,5×; julgar uma comparação inteira de uma vez levava

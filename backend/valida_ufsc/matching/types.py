@@ -54,13 +54,13 @@ class ItemResult:
 class CriterioConfig:
     """Limiares do critério oficial UFSC (configuráveis por colegiado).
 
-    O corte `limiar_boa_chance` (0,70) foi CALIBRADO com os dados: as equivalências
-    oficiais da UFSC (pares de fato equivalentes, com códigos distintos) ficam acima
-    de ~0,70, enquanto 99% dos pares aleatórios ficam abaixo de 0,67 (piso do ruído).
+    O corte `limiar_boa_chance` (0,75) foi alterado pelo usuário (anteriormente calibrado
+    em 0,70 com dados de equivalências oficiais da UFSC; 99% dos pares aleatórios ficam abaixo de 0,67).
     """
 
     limiar_conteudo: float = 0.75       # conteúdo "forte" (reforço por somatório N:1)
-    limiar_boa_chance: float = 0.70     # >= => candidata a "boa chance" (corte calibrado)
+    limiar_boa_chance: float = 0.75     # >= => candidata a "boa chance"
+
     fator_ch: float = 0.75              # >= => carga horária suficiente (regra dos 75%)
 
 
